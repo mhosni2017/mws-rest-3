@@ -279,6 +279,24 @@ nav h2 a {
 	text-decoration: underline;
 }
 
+button.fav {
+	outline: 1px #fff;
+	color:white;
+}
+/* Button style when button is toggled */
+button.fav[aria-pressed=true] {
+	outline: 1px #fff;
+	color:red;
+}
+/* Accessible and easy to spot styles for our buttons when hovered and focused */
+button.fav:hover,
+button.fav:focus {
+	outline: 4px #fff;
+	color:white;
+	text-decoration: underline;
+
+}
+
 /* ====================== Restaurant Details ====================== */
 .inside header {
   position: fixed;

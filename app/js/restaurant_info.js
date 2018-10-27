@@ -68,6 +68,8 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   image.src = imgurl1x;
   image.srcset = `${imgurl1x} 700w, ${imgurl2x} 1200w`;
   image.alt = restaurant.name + ' Image';
+  const favButtonContainer = document.getElementById('fav-button-container');
+  favButtonContainer.append( DBHelper.favoriteButton(restaurant) );
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
 
@@ -132,7 +134,7 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  
+
   date.innerHTML = new Date(review.createdAt).toLocaleDateString();
   li.appendChild(date);
 

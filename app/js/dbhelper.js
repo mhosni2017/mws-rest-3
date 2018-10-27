@@ -3,6 +3,16 @@
  */
 
 /*self.importScripts('idb.js');*/
+const dbPromise = {
+  db: idb.open('rest-db', 2, upgradeDb => {
+    switch (upgradeDb.oldVersion) {
+      case 0:
+        upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
+      case 1:
+        upgradeDb.createObjectStore('reviews', { keyPath: 'id' })
+          .createIndex('restaurant_id', 'restaurant_id');
+    }
+  })};
 
 class DBHelper {
 
@@ -20,11 +30,14 @@ class DBHelper {
    */
   static fetchRestaurants(callback, id) {
     //let xhr = new XMLHttpRequest();
+
+    console.log(id);
+
     let fetchURL;
     if (!id) {
       fetchURL = `${DBHelper.API_URL}/restaurants`;
       }  else {
-        fetchURL=`${DBHelper.API_URL}/restaurants`+'/'+id;
+        fetchURL=`${DBHelper.API_URL}/restaurants/${id}`;
       }
       fetch(fetchURL, {method: 'GET'}).then(response=> {
           console.log(fetchURL);
@@ -46,18 +59,28 @@ class DBHelper {
    */
   static fetchRestaurantById(id, callback) {
     // fetch all restaurants with proper error handling.
+    console.log("byid:"+id);
+    let restaurant;
     DBHelper.fetchRestaurants((error, restaurants) => {
       if (error) {
         callback(error, null);
       } else {
-        const restaurant = restaurants.find(r => r.id == id);
+        if (restaurants.length>1) {
+          console.log("Rest len >1");
+          restaurant = restaurants.find(r => r.id == id);
+        }
+        else {
+          console.log("Rest len <=1");
+          restaurant = restaurants;
+          console.log(restaurant);
+        }
         if (restaurant) { // Got the restaurant
           callback(null, restaurant);
         } else { // Restaurant does not exist in the database
           callback('Restaurant does not exist', null);
         }
       }
-    });
+    },id);
   }
 
   static fetchReviewsByRestaurantId(restaurant_id) {
@@ -66,13 +89,18 @@ class DBHelper {
         return response.json();
       }).then(fetchedReviews => {
         // if reviews could be fetched from network:
-        // TODO: store reviews on idb
+        // store reviews on idb
+        DBHelper.putReviews(fetchedReviews);
         return fetchedReviews;
       }).catch(networkError => {
         // if reviews couldn't be fetched from network:
-        // TODO: try to get reviews from idb
-        console.log(`${networkError}`);
-        return null; // return null to handle error, as though there are no reviews.
+        // try to get reviews from idb
+        console.log(`${networkError}, trying idb.`);
+      return DBHelper.getReviewsForRestaurant(restaurant_id).then(idbReviews => {
+        // if no reviews were found on idb return null
+        if (idbReviews.length < 1) return null; // return null to handle error,  there are no reviews.
+        return idbReviews;
+      });
       });
     }
 
@@ -192,5 +220,88 @@ class DBHelper {
     );
     return marker;
   }
+
+  static putRestaurants(restaurants, forceUpdate = false) {
+      if (!restaurants.push) restaurants = [restaurants];
+      return dbPromise.db.then(db => {
+        const store = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
+        Promise.all(restaurants.map(networkRestaurant => {
+          return store.get(networkRestaurant.id).then(idbRestaurant => {
+            if (forceUpdate) return store.put(networkRestaurant);
+            if (!idbRestaurant || new Date(networkRestaurant.updatedAt) > new Date(idbRestaurant.updatedAt)) {
+              return store.put(networkRestaurant);
+            }
+          });
+        })).then(function () {
+          return store.complete;
+        });
+      });
+    };
+
+
+  static  getRestaurants(id = undefined) {
+      return dbPromise.db.then(db => {
+        const store = db.transaction('restaurants').objectStore('restaurants');
+        if (id) return store.get(Number(id));
+        return store.getAll();
+      });
+    };
+
+  static putReviews(reviews) {
+    if (!reviews.push) reviews = [reviews];
+    return dbPromise.db.then(db => {
+      const store = db.transaction('reviews', 'readwrite').objectStore('reviews');
+      Promise.all(reviews.map(networkReview => {
+        return store.get(networkReview.id).then(idbReview => {
+          if (!idbReview || new Date(networkReview.updatedAt) > new Date(idbReview.updatedAt)) {
+            return store.put(networkReview);
+          }
+        });
+      })).then(function () {
+        return store.complete;
+      });
+    });
+  };
+
+  /**
+   * Get all reviews for a specific restaurant, by its id, using promises.
+   */
+  static getReviewsForRestaurant(id) {
+    return dbPromise.db.then(db => {
+      const storeIndex = db.transaction('reviews').objectStore('reviews').index('restaurant_id');
+      return storeIndex.getAll(Number(id));
+    });
+  };
+
+  static handleClick(id, button) {
+   const restaurantId = id;
+   const fav = button.getAttribute('aria-pressed') == 'true';
+   const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${!fav}`;
+   const PUT = {method: 'PUT'};
+
+   // TODO: use Background Sync to sync data with API server
+   return fetch(url, PUT).then(response => {
+     if (!response.ok) return Promise.reject("We couldn't mark restaurant as favorite.");
+     return response.json();
+   }).then(updatedRestaurant => {
+     // update restaurant on idb
+     DBHelper.putRestaurants(updatedRestaurant, true);
+     // change state of toggle button
+     button.setAttribute('aria-pressed', !fav);
+   });
+ }
+
+
+  static favoriteButton(restaurant) {
+   const button = document.createElement('button');
+   button.innerHTML = "&#x2764;"; // this is the heart symbol in hex code
+   button.className = "fav"; // you can use this class name to style your button
+   button.dataset.id = restaurant.id; // store restaurant id in dataset for later
+   button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
+   button.setAttribute('aria-pressed', restaurant.is_favorite);
+   button.onclick = DBHelper.handleClick(restaurant.id,button);
+
+   return button;
+ }
 
 }

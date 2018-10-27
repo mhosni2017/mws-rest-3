@@ -5,6 +5,8 @@ var map
 var markers = []
 
 
+
+
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
@@ -12,6 +14,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
 });
+
+
 
 /**
  * Fetch all neighborhoods and set their HTML.
@@ -166,6 +170,9 @@ createRestaurantHTML = (restaurant, tabIndexno) => {
   const name = document.createElement('h1');
   name.innerHTML = restaurant.name;
   li.append(name);
+
+  const favButton = DBHelper.favoriteButton(restaurant);
+  li.append(favButton);
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;

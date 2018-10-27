@@ -1,11 +1,18 @@
 /*import idb from "idb";*/
 self.importScripts('idb.js');
 /* code used here from the udacity course and google developers Caching Files with Service Worker samples*/
-const dbPromise = idb.open("rest-db",1, upgradeDB => {
-  switch (upgradeDB.oldVersion) {
-    case 0: upgradeDB.createObjectStore("restaurants" , {keyPath :'id'});
-  }
-});
+
+const dbPromise = {
+  db: idb.open('rest-db', 2, upgradeDb => {
+    switch (upgradeDb.oldVersion) {
+      case 0:
+        upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
+      case 1:
+        upgradeDb.createObjectStore('reviews', { keyPath: 'id' })
+          .createIndex('restaurant_id', 'restaurant_id');
+    }
+})};
+
 let staticCacheName = 'mws-restaurant-cache-1';
 var allCaches = [
   staticCacheName
@@ -62,12 +69,12 @@ self.addEventListener('fetch', function(event) {
  }) ;
 
 const handleAJAXEvent = (event, id) => { // Check the IndexedDB to see if the JSON for the API
-event.respondWith( dbPromise.then(db => {
+event.respondWith( dbPromise.db.then(db => {
     return db.transaction("restaurants").objectStore("restaurants").get(id);
     }).then(data => {
     return ( (data && data.data) || fetch(event.request).then(fetchResponse => fetchResponse.json()).then(
       json => {
-        return dbPromise.then(db => {
+        return dbPromise.db.then(db => {
           const tx = db.transaction("restaurants","readwrite");
           tx.objectStore("restaurants").put({
             id: id,
