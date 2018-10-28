@@ -171,7 +171,7 @@ createRestaurantHTML = (restaurant, tabIndexno) => {
   name.innerHTML = restaurant.name;
   li.append(name);
 
-  const favButton = favoriteButton(restaurant);
+  const favButton = DBHelper.favoriteButton(restaurant);
   li.append(favButton);
 
   const neighborhood = document.createElement('p');

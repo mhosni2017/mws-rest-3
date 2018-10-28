@@ -69,7 +69,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   image.srcset = `${imgurl1x} 700w, ${imgurl2x} 1200w`;
   image.alt = restaurant.name + ' Image';
   const favButtonContainer = document.getElementById('fav-button-container');
-  favButtonContainer.append( favoriteButton(restaurant) );
+  favButtonContainer.append( DBHelper.favoriteButton(restaurant) );
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
 
