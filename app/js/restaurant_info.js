@@ -115,39 +115,20 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+  } else {
+    const ul = document.getElementById('reviews-list');
+    reviews.forEach(review => {
+    ul.appendChild(DBHelper.createReviewHTML(review));
   });
   container.appendChild(ul);
+  }
+  const h3 = document.createElement('h3');
+  h3.innerHTML = "Leave a Review";
+  container.appendChild(h3);
+  const id = getParameterByName('id');
+  container.appendChild(DBHelper.reviewForm(id));
 }
 
-/**
- * Create review HTML and add it to the webpage.
- */
-createReviewHTML = (review) => {
-  const li = document.createElement('li');
-  const name = document.createElement('p');
-  name.innerHTML = review.name;
-  li.appendChild(name);
-
-  const date = document.createElement('p');
-
-  date.innerHTML = new Date(review.createdAt).toLocaleDateString();
-  li.appendChild(date);
-
-  const rating = document.createElement('p');
-  rating.innerHTML = `Rating: ${review.rating}`;
-  li.appendChild(rating);
-
-  const comments = document.createElement('p');
-  comments.innerHTML = review.comments;
-  li.appendChild(comments);
-
-  return li;
-}
 
 /**
  * Add restaurant name to the breadcrumb navigation menu

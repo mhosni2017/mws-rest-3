@@ -479,3 +479,29 @@ nav h2 a {
 	font-size: 1.1em;
 
 }
+
+/* ====================== Restaurant Review Form ====================== */
+
+#review-form {
+  margin: 0;
+  /*max-width: 100%;
+  min-height: 248px;
+  min-width: 100%;*/
+	width: 100%;
+}
+
+#review-form	input {
+  margin: 0;
+  /*max-width: 100%;
+  min-height: 248px;
+  min-width: 100%;*/
+	width: 50%;
+}
+
+#review-form	p textarea {
+  margin: 0;
+  /*max-width: 100%;
+  min-height: 248px;
+  min-width: 100%;*/
+	width: 100%;
+}
