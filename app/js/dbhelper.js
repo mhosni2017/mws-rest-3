@@ -14,6 +14,41 @@ const dbPromise = {
     }
   })};
 
+  function handleClick(button) {
+   const restaurantId = button.dataset.id;
+   const fav = button.getAttribute('aria-pressed') == 'true';
+   console.log("fav in"+fav);
+   const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${!fav}`;
+   const PUT = {method: 'PUT'};
+   console.log("in click:"+restaurantId);
+   // TODO: use Background Sync to sync data with API server
+   return fetch(url, PUT).then(response => {
+     if (!response.ok) return Promise.reject("We couldn't mark restaurant as favorite.");
+     return response.json();
+   }).then(updatedRestaurant => {
+     // update restaurant on idb
+     DBHelper.putRestaurants(updatedRestaurant, true);
+     // change state of toggle button
+     console.log("fav out"+fav);
+     button.setAttribute('aria-pressed', !fav);
+     console.log("aria:"+button.getAttribute('aria-pressed'));
+     console.log("fav not"+!fav);
+   });
+ }
+
+
+  function favoriteButton(restaurant) {
+   const button = document.createElement('button');
+   button.innerHTML = "&#x2764;"; // this is the heart symbol in hex code
+   button.className = "fav";
+   button.dataset.id = restaurant.id; // store restaurant id in dataset for later
+   button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
+   button.setAttribute('aria-pressed', restaurant.is_favorite);
+   button.onclick = function() { handleClick(button); }
+   //button.addEventListener("click", DBHelper.handleClick(button,event));
+   return button;
+ }
+
 class DBHelper {
 
   /**
@@ -273,35 +308,6 @@ class DBHelper {
     });
   };
 
-  static handleClick(id, button) {
-   const restaurantId = id;
-   const fav = button.getAttribute('aria-pressed') == 'true';
-   const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${!fav}`;
-   const PUT = {method: 'PUT'};
 
-   // TODO: use Background Sync to sync data with API server
-   return fetch(url, PUT).then(response => {
-     if (!response.ok) return Promise.reject("We couldn't mark restaurant as favorite.");
-     return response.json();
-   }).then(updatedRestaurant => {
-     // update restaurant on idb
-     DBHelper.putRestaurants(updatedRestaurant, true);
-     // change state of toggle button
-     button.setAttribute('aria-pressed', !fav);
-   });
- }
-
-
-  static favoriteButton(restaurant) {
-   const button = document.createElement('button');
-   button.innerHTML = "&#x2764;"; // this is the heart symbol in hex code
-   button.className = "fav"; // you can use this class name to style your button
-   button.dataset.id = restaurant.id; // store restaurant id in dataset for later
-   button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
-   button.setAttribute('aria-pressed', restaurant.is_favorite);
-   button.onclick = DBHelper.handleClick(restaurant.id,button);
-
-   return button;
- }
 
 }

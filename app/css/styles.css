@@ -283,6 +283,11 @@ button.fav {
 	outline: 1px #fff;
 	color:white;
 }
+
+button.fav[aria-pressed=false] {
+	outline: 1px #fff;
+	color:white;
+}
 /* Button style when button is toggled */
 button.fav[aria-pressed=true] {
 	outline: 1px #fff;
@@ -292,7 +297,6 @@ button.fav[aria-pressed=true] {
 button.fav:hover,
 button.fav:focus {
 	outline: 4px #fff;
-	color:white;
 	text-decoration: underline;
 
 }
