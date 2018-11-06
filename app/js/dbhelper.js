@@ -4,13 +4,16 @@
 
 /*self.importScripts('idb.js');*/
 const dbPromise = {
-  db: idb.open('rest-db', 2, upgradeDb => {
+  db: idb.open('rest-db', 3, upgradeDb => {
     switch (upgradeDb.oldVersion) {
       case 0:
         upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
       case 1:
-        upgradeDb.createObjectStore('reviews', { keyPath: 'id' })
+        upgradeDb.createObjectStore('reviews', { keyPath: 'id', autoIncrement: true })
           .createIndex('restaurant_id', 'restaurant_id');
+      case 2:
+        upgradeDb.createObjectStore('pendingfavorite', { keyPath: "id", autoIncrement: true });
+        upgradeDb.createObjectStore('pendingreviews', { keyPath: "id", autoIncrement: true });
     }
   })};
 
@@ -45,7 +48,32 @@ class DBHelper {
           console.log(fetchURL);
           console.log(response);
           response.json().then(restaurants=> {
+            callback(null,restaurants);
               console.log('Restaurant JSON:', restaurants);
+              return dbPromise.db.then(db => {
+                const tx = db.transaction("restaurants","readwrite");
+
+                if (restaurants.length>1) {
+                  console.log("in -1:"+restaurants.length);
+                let i=0;
+                for (i=0; i<restaurants.length; i++)
+                {
+                  console.log("in -1:"+restaurants[i].data);
+                  tx.objectStore("restaurants").put(restaurants[i]
+                    /*{
+                    id: restaurants[i].id,
+                    data: restaurants[i]
+                  }*/);
+                }
+                } else {
+                tx.objectStore("restaurants").put(restaurants
+                  /*{
+                  id: id,
+                  data: restaurants
+                }*/);
+                }
+                tx.complete;
+              })
               callback(null,restaurants);
           }).catch(error=> {
             callback(`Request failed. Returned ${error}`, null);
@@ -357,7 +385,8 @@ class DBHelper {
     if (!review) return;
 
     console.log(review);
-
+    let reviewJson=review;//JSON.stringify(review);
+    console.log("let RJSON:"+reviewJson);
     const url = `${DBHelper.API_URL}/reviews/`;
     const POST = {
       method: 'POST',
@@ -377,7 +406,36 @@ class DBHelper {
       reviewList.appendChild(review);
       // clear form
       DBHelper.clearForm();
-    });
+    }).catch(e=>{
+
+      console.log("it seems we are offline.");
+      dbPromise.db.then(db => {
+        const store = db.transaction('pendingreviews', 'readwrite').objectStore('pendingreviews');
+           let item = {
+               restaurant_id : parseInt(review.restaurant_id ),
+               reviews : review
+             }
+               store.add(item);
+               return store.complete;
+          }).then(function() {
+              console.log("RJSON:"+reviewJson);
+              //DBHelper.putReviews(reviewJson);
+              dbPromise.db.then(db => {
+                const store = db.transaction('reviews', 'readwrite').objectStore('reviews');
+                store.add(reviewJson);
+                return store.complete;
+              });
+
+
+              //});
+              const reviewList = document.getElementById('reviews-list');
+              const review = DBHelper.createReviewHTML(reviewJson);
+              reviewList.appendChild(review);
+              // clear form
+              DBHelper.clearForm();
+            });
+
+    })
 
   }
 
@@ -440,7 +498,10 @@ class DBHelper {
     return form;
   };
 
-  static handleClick(button) {
+
+
+
+  static handleClick(button,restaurant) {
    const restaurantId = button.dataset.id;
    const fav = button.getAttribute('aria-pressed') == 'true';
    console.log("fav in"+fav);
@@ -455,11 +516,40 @@ class DBHelper {
      // update restaurant on idb
      DBHelper.putRestaurants(updatedRestaurant, true);
      // change state of toggle button
-     console.log("fav out"+fav);
+     console.log("sfav out"+fav);
      button.setAttribute('aria-pressed', !fav);
      console.log("aria:"+button.getAttribute('aria-pressed'));
-     console.log("fav not"+!fav);
-   });
+     console.log("sfav not"+!fav);
+   }).catch(e => {
+       console.log("it seems we are offline.");
+       dbPromise.db.then(db => {
+         const store = db.transaction('pendingfavorite', 'readwrite').objectStore('pendingfavorite');
+            let item = {
+                restaurant_id : parseInt(restaurantId ),
+                favorite : !fav
+              }
+                store.add(item);
+                return store.complete;
+           }).then(function() {
+             dbPromise.db.then(db => {
+               const store = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
+               let updatedRestaurant  = restaurant;
+                console.log(updatedRestaurant.is_favorite);
+                updatedRestaurant.is_favorite = !fav;
+                updatedRestaurant.updatedAt = new Date().toISOString();
+
+               console.log(updatedRestaurant);
+               console.log(updatedRestaurant.is_favorite);
+               store.put(updatedRestaurant);
+               console.log("fav out"+fav);
+               button.setAttribute('aria-pressed', !fav);
+               console.log("aria:"+button.getAttribute('aria-pressed'));
+               console.log("fav not"+!fav);
+               return store.complete;
+
+         });
+       });
+   }) ;
  }
 
  static favoriteButton(restaurant) {
@@ -468,8 +558,9 @@ class DBHelper {
   button.className = "fav";
   button.dataset.id = restaurant.id; // store restaurant id in dataset for later
   button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
+  console.log("rest:"+restaurant.id+":"+restaurant.is_favorite)
   button.setAttribute('aria-pressed', restaurant.is_favorite);
-  button.onclick = function() { DBHelper.handleClick(button); }
+  button.onclick = function() { DBHelper.handleClick(button,restaurant); }
   //button.addEventListener("click", DBHelper.handleClick(button,event));
   return button;
 }
