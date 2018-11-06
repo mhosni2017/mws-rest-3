@@ -11,3 +11,10 @@ Then clone this repo and goto app directory and run
 - python -m http.server 8000
 
 -To run the app, goto http://localhost:8000
+
+# References
+I studied and used solution/fixes provided in the following sources:-
+- Doug Brown videos and repo.
+- Alexandro Perez blog MWS Restaurant Reviews Project
+- Google developers site
+- https://stackoverflow.com/
