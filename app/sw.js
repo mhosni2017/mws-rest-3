@@ -77,12 +77,14 @@ self.addEventListener('fetch', function(event) {
 
 
  self.addEventListener('sync', function(event) {
+   console.log("in sync");
    if (event.tag == 'favoriteSync') {
      event.waitUntil(favoriteSyncFunction());
    }
  });
 
  self.addEventListener('sync', function(event) {
+   console.log("in sync");
    if (event.tag == 'reviewSync') {
      event.waitUntil(reviewSyncFunction());
    }
@@ -96,8 +98,7 @@ self.addEventListener('fetch', function(event) {
        }).then(data=>{
          console.log("fs data:"+data);
          console.log("fs data.length:"+data.length);
-         console.log("fs data.result:"+data.result);
-         //console.log("fs data.target:"+data.target.result);
+         // not needed , won't implement
        });
  }
 
@@ -109,8 +110,21 @@ self.addEventListener('fetch', function(event) {
        }).then(data=>{
          console.log("rs data:"+data);
          console.log("rs data.length:"+data.length);
-         console.log("rs data.result:"+data.result);
+         //console.log("rs data.result:"+data.result);
          //console.log("fs data.target:"+data.target.result);
+         data.map( d => {
+           const review = d.reviews;
+           const url = `${DBHelper.API_URL}/reviews/`;
+           const POST = {
+             method: 'POST',
+             body: JSON.stringify(review)
+           };
+           fetch(url, POST).then(response => {
+             if (!response.ok) return Promise.reject("Couldn't post review to server.");
+             store.delete(d.id);
+             return response.json();
+           });
+         });
        });
   }
 

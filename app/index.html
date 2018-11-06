@@ -45,16 +45,19 @@
         window.addEventListener('load', function () {
           navigator.serviceWorker.register('sw.js').then(function (registration) {
             console.log('ServiceWorker registration succeeded ', registration);
-          }, function (error) {
+            console.log("register done");
+            navigator.serviceWorker.ready.then(swRegistration=> {
+              console.log("register favoriteSync");
+              return swRegistration.sync.register('favoriteSync');
+            });
+            navigator.serviceWorker.ready.then(swRegistration=> {
+              console.log("register reviewSync");
+              return swRegistration.sync.register('reviewSync');
+            });
+          }).catch( function (error) {
             console.log('ServiceWorker registration failed: ', error);
           });
         });
-          navigator.serviceWorker.ready.then(swRegistration=> {
-          return swRegistration.sync.register('favoriteSync');
-        });
-        navigator.serviceWorker.ready.then(swRegistration=> {
-        return swRegistration.sync.register('reviewSync');
-      });
       }
       else {
         console.log('Service workers are not supported.');

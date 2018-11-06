@@ -161,7 +161,7 @@ createRestaurantHTML = (restaurant, tabIndexno) => {
   console.log(imgurl1x);
   console.log(imgurl2x);
 
-  image.srcset = `${imgurl1x} 700w, ${imgurl2x} 1200w`;
+  image.srcset = `${imgurl1x}` //700w //, ${imgurl2x} 1200w`;
   console.log(image.srcset);
 
   image.alt = restaurant.name + ' Image';

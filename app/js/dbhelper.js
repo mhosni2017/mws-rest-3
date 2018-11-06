@@ -393,7 +393,10 @@ class DBHelper {
       body: JSON.stringify(review)
     };
 
-    // TODO: use Background Sync to sync data with API server
+    /* Sync
+    var event = new Event('sync');
+    event.tag = 'reviewSync';
+    self.dispatchEvent(event);*/
     return fetch(url, POST).then(response => {
       if (!response.ok) return Promise.reject("Couldn't post review to server.");
       return response.json();
