@@ -27,7 +27,9 @@ let urlsToCache = [
   'css/styles.css',
   'js/main.js',
   'js/dbhelper.js',
-  'js/restaurant_info.js'
+  'js/restaurant_info.js',
+  'img/*.jpg',
+  'icons/*.png'
 ];
 
 
@@ -47,7 +49,7 @@ self.addEventListener('activate', function(event) {
       return Promise.all(
         cacheNames.filter(function(cacheName) {
           return cacheName.startsWith('mws-') &&
-                 !allCaches.includes(cacheName);
+                 !allCaches.includes(staticCacheName);
         }).map(function(cacheName) {
           return caches.delete(cacheName);
         })
@@ -170,7 +172,7 @@ event.respondWith( dbPromise.db.then(db => {
              return new Response(JSON.stringify(finalResponse));
           }).catch(error => {
             console.log(error);
-            return new Response("Error fetching data", { status: 500});
+            return new Response("Error fetching data", { status: 200});
         })
       ); };
 
@@ -190,7 +192,7 @@ const handleNonAJAXEvent = (event,cacheRequest) => {
         return new Response (
           "Application is not connected to internet" ,
            {
-             status: 404,
+             status: 200,
              statusText : "Application is not connected to internet"
            }
 
