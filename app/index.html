@@ -55,8 +55,10 @@
         window.addEventListener('load', function () {
           navigator.serviceWorker.register('sw.js').then(function (registration) {
             console.log('ServiceWorker registration succeeded ', registration);
-            console.log("register done");
-            navigator.serviceWorker.ready.then(swRegistration=> {
+
+            if ('sync' in reg) {
+              console.log("sync available");
+              navigator.serviceWorker.ready.then(swRegistration=> {
               console.log("register favoriteSync");
               return swRegistration.sync.register('favoriteSync');
             });
@@ -64,6 +66,7 @@
               console.log("register reviewSync");
               return swRegistration.sync.register('reviewSync');
             });
+          }
           }).catch( function (error) {
             console.log('ServiceWorker registration failed: ', error);
           });

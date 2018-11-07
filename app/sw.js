@@ -27,22 +27,31 @@ let urlsToCache = [
   'css/styles.css',
   'js/main.js',
   'js/dbhelper.js',
-  'js/restaurant_info.js',
-  'img/*.jpg',
-  'icons/*.png'
+  'js/restaurant_info.js'
 ];
 
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(staticCacheName).then(function(cache) {
-      console.log("inside install")
+      console.log("inside install");
+      //console.log("after install done");
+      //sef.ready.then(swRegistration=> {
+      //  console.log("register favoriteSync");
+      //  return
+      //swRegistration.sync.register('favoriteSync');
+      //});
+      //self.ready.then(swRegistration=> {
+      //  console.log("register reviewSync");
+        //return
+      //  swRegistration.sync.register('reviewSync');
+      //});
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-self.addEventListener('activate', function(event) {
+/* self.addEventListener('activate', function(event) {
   console.log("inside activate")
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
@@ -55,6 +64,19 @@ self.addEventListener('activate', function(event) {
         })
       );
     })
+  );
+});*/
+
+self.addEventListener('activate', event => {
+  const currentCaches = allCaches;
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return cacheNames.filter(cacheName => cacheName.startsWith('mws-') && !currentCaches.includes(cacheName));
+    }).then(cachesToDelete => {
+      return Promise.all(cachesToDelete.map(cacheToDelete => {
+        return caches.delete(cacheToDelete);
+      }));
+    }).then(() => self.clients.claim())
   );
 });
 
