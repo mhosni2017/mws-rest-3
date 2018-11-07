@@ -49,7 +49,7 @@ self.addEventListener('activate', function(event) {
       return Promise.all(
         cacheNames.filter(function(cacheName) {
           return cacheName.startsWith('mws-') &&
-                 !allCaches.includes(staticCacheName);
+                 !allCaches.includes(cacheName);
         }).map(function(cacheName) {
           return caches.delete(cacheName);
         })
