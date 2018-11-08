@@ -26,7 +26,7 @@ class DBHelper {
    * Change this to restaurants.json file location on your server.
    */
   static get API_URL() {
-    const port = 1337 // Change this to your server port
+    const port = 1337
     return `http://localhost:${port}`;
   }
 

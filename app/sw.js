@@ -1,5 +1,6 @@
 /*import idb from "idb";*/
 self.importScripts('idb.js');
+//self.importScripts('js/dbhelper.js');
 /* code used here from the udacity course and google developers Caching Files with Service Worker samples*/
 
 const dbPromise = {
@@ -35,17 +36,7 @@ self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(staticCacheName).then(function(cache) {
       console.log("inside install");
-      //console.log("after install done");
-      //sef.ready.then(swRegistration=> {
-      //  console.log("register favoriteSync");
-      //  return
-      //swRegistration.sync.register('favoriteSync');
-      //});
-      //self.ready.then(swRegistration=> {
-      //  console.log("register reviewSync");
-        //return
-      //  swRegistration.sync.register('reviewSync');
-      //});
+
         return cache.addAll(urlsToCache);
       })
   );
@@ -138,14 +129,20 @@ self.addEventListener('fetch', function(event) {
          //console.log("fs data.target:"+data.target.result);
          data.map( d => {
            const review = d.reviews;
-           const url = `${DBHelper.API_URL}/reviews/`;
+           const port = 1337
+           API_URL= `http://localhost:${port}`;
+           const url = `${API_URL}/reviews/`;
            const POST = {
              method: 'POST',
              body: JSON.stringify(review)
            };
            fetch(url, POST).then(response => {
              if (!response.ok) return Promise.reject("Couldn't post review to server.");
-             store.delete(d.id);
+             dbPromise.db.then(db => {
+             const store = db.transaction('pendingreviews', 'readwrite').objectStore('pendingreviews');
+              store.delete(d.id);
+              store.complete;
+              });
              return response.json();
            });
          });

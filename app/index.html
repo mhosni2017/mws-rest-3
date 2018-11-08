@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#333333">
 <!--
 <link rel="preload" href="idb.js" as="script">
 <link rel="preload" href="js/dbhelper.js" as="script">
@@ -14,6 +12,8 @@
   <link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
   <link rel="stylesheet" href="css/styles.css">
   <meta charset='utf-8'>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#333333">
 
   <title>Restaurant Reviews</title>
 </head>
@@ -48,7 +48,7 @@
   <script type="application/javascript" charset="utf-8" src="idb.js"></script>
   <script type="application/javascript" charset="utf-8" src="js/dbhelper.js"></script>
   <script type="application/javascript" charset="utf-8" src="js/main.js"></script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjt92SC4-Scxgs31HTV4mbOqPajQcV-VQ&libraries=places&callback=initMap"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0M-dXwDKXp0aM3hKTCkiEEKzohuBVric&libraries=places&callback=initMap"></script>
   <script type="application/javascript" charset="utf-8">
   /* Service worker*/
   if ('serviceWorker' in navigator) {
@@ -56,16 +56,18 @@
           navigator.serviceWorker.register('sw.js').then(function (registration) {
             console.log('ServiceWorker registration succeeded ', registration);
 
-            if ('sync' in reg) {
+            if ('sync' in registration) {
               console.log("sync available");
-              navigator.serviceWorker.ready.then(swRegistration=> {
+              //navigator.serviceWorker.ready.then(swRegistration=> {
               console.log("register favoriteSync");
-              return swRegistration.sync.register('favoriteSync');
-            });
-            navigator.serviceWorker.ready.then(swRegistration=> {
+              //return
+              registration.sync.register('favoriteSync');
+            //});
+            //navigator.serviceWorker.ready.then(swRegistration=> {
               console.log("register reviewSync");
-              return swRegistration.sync.register('reviewSync');
-            });
+              //return
+              registration.sync.register('reviewSync');
+            //});
           }
           }).catch( function (error) {
             console.log('ServiceWorker registration failed: ', error);
