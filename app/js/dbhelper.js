@@ -2,18 +2,18 @@
  * Common database helper functions.
  */
 
-/*self.importScripts('idb.js');*/
+/*self.importScripts("idb.js");*/
 const dbPromise = {
-  db: idb.open('rest-db', 3, upgradeDb => {
+  db: idb.open("rest-db", 3, upgradeDb => {
     switch (upgradeDb.oldVersion) {
       case 0:
-        upgradeDb.createObjectStore('restaurants', { keyPath: 'id' });
+        upgradeDb.createObjectStore("restaurants", { keyPath: "id" });
       case 1:
-        upgradeDb.createObjectStore('reviews', { keyPath: 'id', autoIncrement: true })
-          .createIndex('restaurant_id', 'restaurant_id');
+        upgradeDb.createObjectStore("reviews", { keyPath: "id", autoIncrement: true })
+          .createIndex("restaurant_id", "restaurant_id");
       case 2:
-        upgradeDb.createObjectStore('pendingfavorite', { keyPath: "id", autoIncrement: true });
-        upgradeDb.createObjectStore('pendingreviews', { keyPath: "id", autoIncrement: true });
+        upgradeDb.createObjectStore("pendingfavorite", { keyPath: "id", autoIncrement: true });
+        upgradeDb.createObjectStore("pendingreviews", { keyPath: "id", autoIncrement: true });
     }
   })};
 
@@ -44,12 +44,12 @@ class DBHelper {
       }  else {
         fetchURL=`${DBHelper.API_URL}/restaurants/${id}`;
       }
-      fetch(fetchURL, {method: 'GET'}).then(response=> {
+      fetch(fetchURL, {method: "GET"}).then(response=> {
           console.log(fetchURL);
           console.log(response);
           response.json().then(restaurants=> {
             callback(null,restaurants);
-              console.log('Restaurant JSON:', restaurants);
+              console.log("Restaurant JSON:", restaurants);
               return dbPromise.db.then(db => {
                 const tx = db.transaction("restaurants","readwrite");
 
@@ -107,7 +107,7 @@ class DBHelper {
         if (restaurant) { // Got the restaurant
           callback(null, restaurant);
         } else { // Restaurant does not exist in the database
-          callback('Restaurant does not exist', null);
+          callback("Restaurant does not exist", null);
         }
       }
     },id);
@@ -176,10 +176,10 @@ class DBHelper {
         callback(error, null);
       } else {
         let results = restaurants
-        if (cuisine != 'all') { // filter by cuisine
+        if (cuisine != "all") { // filter by cuisine
           results = results.filter(r => r.cuisine_type == cuisine);
         }
-        if (neighborhood != 'all') { // filter by neighborhood
+        if (neighborhood != "all") { // filter by neighborhood
           results = results.filter(r => r.neighborhood == neighborhood);
         }
         callback(null, results);
@@ -254,7 +254,7 @@ class DBHelper {
   static putRestaurants(restaurants, forceUpdate = false) {
       if (!restaurants.push) restaurants = [restaurants];
       return dbPromise.db.then(db => {
-        const store = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
+        const store = db.transaction("restaurants", "readwrite").objectStore("restaurants");
         Promise.all(restaurants.map(networkRestaurant => {
           return store.get(networkRestaurant.id).then(idbRestaurant => {
             if (forceUpdate) return store.put(networkRestaurant);
@@ -271,7 +271,7 @@ class DBHelper {
 
   static  getRestaurants(id = undefined) {
       return dbPromise.db.then(db => {
-        const store = db.transaction('restaurants').objectStore('restaurants');
+        const store = db.transaction("restaurants").objectStore("restaurants");
         if (id) return store.get(Number(id));
         return store.getAll();
       });
@@ -280,7 +280,7 @@ class DBHelper {
   static putReviews(reviews) {
     if (!reviews.push) reviews = [reviews];
     return dbPromise.db.then(db => {
-      const store = db.transaction('reviews', 'readwrite').objectStore('reviews');
+      const store = db.transaction("reviews", "readwrite").objectStore("reviews");
       Promise.all(reviews.map(networkReview => {
         return store.get(networkReview.id).then(idbReview => {
           if (!idbReview || new Date(networkReview.updatedAt) > new Date(idbReview.updatedAt)) {
@@ -298,26 +298,26 @@ class DBHelper {
    */
   static getReviewsForRestaurant(id) {
     return dbPromise.db.then(db => {
-      const storeIndex = db.transaction('reviews').objectStore('reviews').index('restaurant_id');
+      const storeIndex = db.transaction("reviews").objectStore("reviews").index("restaurant_id");
       return storeIndex.getAll(Number(id));
     });
   };
 
   static createReviewHTML(review) {
-    const li = document.createElement('li');
-    const name = document.createElement('p');
+    const li = document.createElement("li");
+    const name = document.createElement("p");
     name.innerHTML = review.name;
     li.appendChild(name);
 
-    const date = document.createElement('p');
+    const date = document.createElement("p");
     date.innerHTML = new Date(review.createdAt).toLocaleDateString();
     li.appendChild(date);
 
-    const rating = document.createElement('p');
+    const rating = document.createElement("p");
     rating.innerHTML = `Rating: ${review.rating}`;
     li.appendChild(rating);
 
-    const comments = document.createElement('p');
+    const comments = document.createElement("p");
     comments.innerHTML = review.comments;
     li.appendChild(comments);
 
@@ -329,9 +329,9 @@ class DBHelper {
    */
   static clearForm() {
     // clear form data
-    document.getElementById('name').value = "";
-    document.getElementById('rating').selectedIndex = 0;
-    document.getElementById('comments').value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("rating").selectedIndex = 0;
+    document.getElementById("comments").value = "";
   }
 
   /**
@@ -342,15 +342,15 @@ class DBHelper {
     const data = {};
 
     // get name
-    let name = document.getElementById('name');
-    if (name.value === '') {
+    let name = document.getElementById("name");
+    if (name.value === "") {
       name.focus();
       return;
     }
     data.name = name.value;
 
     // get rating
-    const ratingSelect = document.getElementById('rating');
+    const ratingSelect = document.getElementById("rating");
     const rating = ratingSelect.options[ratingSelect.selectedIndex].value;
     if (rating == "--") {
       ratingSelect.focus();
@@ -359,7 +359,7 @@ class DBHelper {
     data.rating = Number(rating);
 
     // get comments
-    let comments = document.getElementById('comments');
+    let comments = document.getElementById("comments");
     if (comments.value === "") {
       comments.focus();
       return;
@@ -367,7 +367,7 @@ class DBHelper {
     data.comments = comments.value;
 
     // get restaurant_id
-    let restaurantId = document.getElementById('review-form').dataset.restaurantId;
+    let restaurantId = document.getElementById("review-form").dataset.restaurantId;
     data.restaurant_id = Number(restaurantId);
 
     // set createdAT
@@ -389,13 +389,13 @@ class DBHelper {
     console.log("let RJSON:"+reviewJson);
     const url = `${DBHelper.API_URL}/reviews/`;
     const POST = {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(review)
     };
 
     /* Sync
-    var event = new Event('sync');
-    event.tag = 'reviewSync';
+    var event = new Event("sync");
+    event.tag = "reviewSync";
     self.dispatchEvent(event);*/
     return fetch(url, POST).then(response => {
       if (!response.ok) return Promise.reject("Couldn't post review to server.");
@@ -404,7 +404,7 @@ class DBHelper {
       // save new review on idb
       DBHelper.putReviews(newNetworkReview);
       // post new review on page
-      const reviewList = document.getElementById('reviews-list');
+      const reviewList = document.getElementById("reviews-list");
       const review = DBHelper.createReviewHTML(newNetworkReview);
       reviewList.appendChild(review);
       // clear form
@@ -413,7 +413,7 @@ class DBHelper {
 
       console.log("it seems we are offline.");
       dbPromise.db.then(db => {
-        const store = db.transaction('pendingreviews', 'readwrite').objectStore('pendingreviews');
+        const store = db.transaction("pendingreviews", "readwrite").objectStore("pendingreviews");
            let item = {
                restaurant_id : parseInt(review.restaurant_id ),
                reviews : review
@@ -424,14 +424,14 @@ class DBHelper {
               console.log("RJSON:"+reviewJson);
               //DBHelper.putReviews(reviewJson);
               dbPromise.db.then(db => {
-                const store = db.transaction('reviews', 'readwrite').objectStore('reviews');
+                const store = db.transaction("reviews", "readwrite").objectStore("reviews");
                 store.add(reviewJson);
                 return store.complete;
               });
 
 
               //});
-              const reviewList = document.getElementById('reviews-list');
+              const reviewList = document.getElementById("reviews-list");
               const review = DBHelper.createReviewHTML(reviewJson);
               reviewList.appendChild(review);
               // clear form
@@ -446,30 +446,30 @@ class DBHelper {
    * Returns a form element for posting new reviews.
    */
     static reviewForm(restaurantId) {
-    const form = document.createElement('form');
+    const form = document.createElement("form");
     form.id = "review-form";
     form.dataset.restaurantId = restaurantId;
 
-    let p = document.createElement('p');
-    const name = document.createElement('input');
+    let p = document.createElement("p");
+    const name = document.createElement("input");
     name.id = "name"
-    name.setAttribute('type', 'text');
-    name.setAttribute('aria-label', 'Name');
-    name.setAttribute('placeholder', 'Enter your name here');
+    name.setAttribute("type", "text");
+    name.setAttribute("aria-label", "Name");
+    name.setAttribute("placeholder", "Enter your name here");
     p.appendChild(name);
     form.appendChild(p);
 
-    p = document.createElement('p');
-    const selectLabel = document.createElement('label');
-    selectLabel.setAttribute('for', 'rating');
+    p = document.createElement("p");
+    const selectLabel = document.createElement("label");
+    selectLabel.setAttribute("for", "rating");
     selectLabel.innerText = "Your rating: ";
     p.appendChild(selectLabel);
-    const select = document.createElement('select');
+    const select = document.createElement("select");
     select.id = "rating";
     select.name = "rating";
-    select.classList.add('rating');
+    select.classList.add("rating");
     ["--", 1,2,3,4,5].forEach(number => {
-      const option = document.createElement('option');
+      const option = document.createElement("option");
       option.value = number;
       option.innerHTML = number;
       if (number === "--") option.selected = true;
@@ -478,20 +478,20 @@ class DBHelper {
     p.appendChild(select);
     form.appendChild(p);
 
-    p = document.createElement('p');
-    const textarea = document.createElement('textarea');
+    p = document.createElement("p");
+    const textarea = document.createElement("textarea");
     textarea.id = "comments";
-    textarea.setAttribute('aria-label', 'comments');
-    textarea.setAttribute('placeholder', 'Enter your review here');
-    textarea.setAttribute('rows', '5');
+    textarea.setAttribute("aria-label", "comments");
+    textarea.setAttribute("placeholder", "Enter your review here");
+    textarea.setAttribute("rows", "5");
     p.appendChild(textarea);
     form.appendChild(p);
 
-    p = document.createElement('p');
-    const addButton = document.createElement('button');
-    addButton.setAttribute('type', 'submit');
-    addButton.setAttribute('aria-label', 'Add Review');
-    addButton.classList.add('add-review');
+    p = document.createElement("p");
+    const addButton = document.createElement("button");
+    addButton.setAttribute("type", "submit");
+    addButton.setAttribute("aria-label", "Add Review");
+    addButton.classList.add("add-review");
     addButton.innerHTML = "<span>Add your review</span>";
     p.appendChild(addButton);
     form.appendChild(p);
@@ -506,10 +506,10 @@ class DBHelper {
 
   static handleClick(button,restaurant) {
    const restaurantId = button.dataset.id;
-   const fav = button.getAttribute('aria-pressed') == 'true';
+   const fav = button.getAttribute("aria-pressed") == "true";
    console.log("fav in"+fav);
    const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${!fav}`;
-   const PUT = {method: 'PUT'};
+   const PUT = {method: "PUT"};
    console.log("in click:"+restaurantId);
    // TODO: use Background Sync to sync data with API server
    return fetch(url, PUT).then(response => {
@@ -520,13 +520,13 @@ class DBHelper {
      DBHelper.putRestaurants(updatedRestaurant, true);
      // change state of toggle button
      console.log("sfav out"+fav);
-     button.setAttribute('aria-pressed', !fav);
-     console.log("aria:"+button.getAttribute('aria-pressed'));
+     button.setAttribute("aria-pressed", !fav);
+     console.log("aria:"+button.getAttribute("aria-pressed"));
      console.log("sfav not"+!fav);
    }).catch(e => {
        console.log("it seems we are offline.");
        dbPromise.db.then(db => {
-         const store = db.transaction('pendingfavorite', 'readwrite').objectStore('pendingfavorite');
+         const store = db.transaction("pendingfavorite", "readwrite").objectStore("pendingfavorite");
             let item = {
                 restaurant_id : parseInt(restaurantId ),
                 favorite : !fav
@@ -535,7 +535,7 @@ class DBHelper {
                 return store.complete;
            }).then(function() {
              dbPromise.db.then(db => {
-               const store = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
+               const store = db.transaction("restaurants", "readwrite").objectStore("restaurants");
                let updatedRestaurant  = restaurant;
                 console.log(updatedRestaurant.is_favorite);
                 updatedRestaurant.is_favorite = !fav;
@@ -545,8 +545,8 @@ class DBHelper {
                console.log(updatedRestaurant.is_favorite);
                store.put(updatedRestaurant);
                console.log("fav out"+fav);
-               button.setAttribute('aria-pressed', !fav);
-               console.log("aria:"+button.getAttribute('aria-pressed'));
+               button.setAttribute("aria-pressed", !fav);
+               console.log("aria:"+button.getAttribute("aria-pressed"));
                console.log("fav not"+!fav);
                return store.complete;
 
@@ -556,13 +556,13 @@ class DBHelper {
  }
 
  static favoriteButton(restaurant) {
-  const button = document.createElement('button');
+  const button = document.createElement("button");
   button.innerHTML = "&#x2764;"; // this is the heart symbol in hex code
   button.className = "fav";
   button.dataset.id = restaurant.id; // store restaurant id in dataset for later
-  button.setAttribute('aria-label', `Mark ${restaurant.name} as a favorite`);
+  button.setAttribute("aria-label", `Mark ${restaurant.name} as a favorite`);
   console.log("rest:"+restaurant.id+":"+restaurant.is_favorite)
-  button.setAttribute('aria-pressed', restaurant.is_favorite);
+  button.setAttribute("aria-pressed", restaurant.is_favorite);
   button.onclick = function() { DBHelper.handleClick(button,restaurant); }
   //button.addEventListener("click", DBHelper.handleClick(button,event));
   return button;

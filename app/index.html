@@ -58,12 +58,12 @@
 
             if ('sync' in registration) {
               console.log("sync available");
-              //navigator.serviceWorker.ready.then(swRegistration=> {
+              //navigator.serviceWorker.ready.then(registration=> {
               console.log("register favoriteSync");
               //return
               registration.sync.register('favoriteSync');
             //});
-            //navigator.serviceWorker.ready.then(swRegistration=> {
+            //navigator.serviceWorker.ready.then(registration=> {
               console.log("register reviewSync");
               //return
               registration.sync.register('reviewSync');
