@@ -125,8 +125,7 @@ self.addEventListener('fetch', function(event) {
        }).then(data=>{
          console.log("rs data:"+data);
          console.log("rs data.length:"+data.length);
-         //console.log("rs data.result:"+data.result);
-         //console.log("fs data.target:"+data.target.result);
+
          data.map( d => {
            const review = d.reviews;
            const port = 1337
@@ -200,19 +199,28 @@ const handleNonAJAXEvent = (event,cacheRequest) => {
   event.respondWith(
     caches.open(staticCacheName).then(function(cache) {
       return caches.match(cacheRequest).then(function(response) {
+      /*  if ((event.request.url.indexOf(".jpg")>=1) && (response)) {
+          console.log("jpg");
+          console.log(event.request.url.indexOf(".jpg"));
+
+          console.log(response);
+
+          response.headers.append("Cache-Control","max-age=86400, public");
+        }*/
         return response || fetch(event.request).then(function(response) {
+
           cache.put(event.request, response.clone());
           return response;
         });
       }).catch( error=> {
-        if (event.request.url.indexOf(".jpg">=1)) {
+        if (event.request.url.indexOf(".jpg")>=1) {
           return caches.match("/img/na.png");
         }
         return new Response (
-          "Application is not connected to internet" ,
+          "No internet and no cache" ,
            {
              status: 200,
-             statusText : "Application is not connected to internet"
+             statusText : "No internet and no cache"
            }
 
         );
